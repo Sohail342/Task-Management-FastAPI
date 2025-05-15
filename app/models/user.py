@@ -3,14 +3,16 @@ from app.db.base_class import Base
 from app.utils.security import hash_password, verify_password
 import enum
 
+
 class UserRole(str, enum.Enum):
     ADMIN = "Admin"
     SUPERVISOR = "Supervisor"
     EMPLOYEE = "Employee"
     COMPLIANCE = "Compliance"
 
+
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
@@ -20,11 +22,11 @@ class User(Base):
     password = Column(String, nullable=False)
     is_active = Column(Integer, default=1, nullable=False)
     is_superuser = Column(Integer, default=0, nullable=False)
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if 'password' in kwargs:
-            self.set_password(kwargs['password'])
+        if "password" in kwargs:
+            self.set_password(kwargs["password"])
 
     def set_password(self, password: str):
         """Hash and set the password."""

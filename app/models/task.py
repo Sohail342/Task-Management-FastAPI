@@ -1,8 +1,18 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, Boolean, Text
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    Enum,
+    DateTime,
+    Boolean,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 from datetime import datetime, timezone
 import enum
+
 
 class TaskStatus(str, enum.Enum):
     PENDING = "Pending"
@@ -12,15 +22,15 @@ class TaskStatus(str, enum.Enum):
 
 
 class Task(Base):
-    __tablename__ = 'tasks'
+    __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text)
     assigned_to_id = Column(Integer, ForeignKey("users.id"))
     assigned_by_id = Column(Integer, ForeignKey("users.id"))
-    start_date = Column(DateTime, default=datetime.now(timezone.utc))
-    due_date = Column(DateTime)
+    start_date = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+    due_date = Column(DateTime(timezone=True))
     status = Column(Enum(TaskStatus), default=TaskStatus.PENDING)
     dependency_task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
     escalation_flagged = Column(Boolean, default=False)
@@ -31,11 +41,11 @@ class Task(Base):
     remarks = relationship("TaskRemark", back_populates="task")
 
 
-
 class RemarkSource(str, enum.Enum):
     SUPERVISOR = "Supervisor"
     COMPLIANCE = "Compliance"
     HR = "HR"
+
 
 class TaskRemark(Base):
     __tablename__ = "task_remarks"
@@ -51,7 +61,6 @@ class TaskRemark(Base):
     user = relationship("User")
 
 
-
 class EscalationLog(Base):
     __tablename__ = "escalations"
 
@@ -63,4 +72,3 @@ class EscalationLog(Base):
 
     task = relationship("Task")
     escalated_by = relationship("User")
-
