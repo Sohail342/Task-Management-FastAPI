@@ -31,6 +31,9 @@ class UserCreate(BaseModel):
 
         if password != confirm_password:
             raise ValueError("Passwords do not match")
+        
+        if not password:
+            raise ValueError("Password cannot be empty")
 
         # Check if password contains at least one digit, one uppercase letter, and one lowercase letter
         if not re.search(r"[A-Z]", password):
