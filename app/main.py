@@ -5,7 +5,7 @@ from app.router import (
 )
 
 
-app = FastAPI(title="Task Management API", description="API for managing tasks")
+app = FastAPI(title="Task Management API", description="API for managing tasks", version="1.0.0")
 
 
 # Include routers
