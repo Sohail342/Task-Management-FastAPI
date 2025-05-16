@@ -16,7 +16,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    phone_number = Column(String, unique=True, index=True)
+    phone_number = Column(String, index=True, nullable=False, default="")
     email = Column(String, unique=True, index=True)
     role = Column(Enum(UserRole), default=UserRole.EMPLOYEE, nullable=False)
     password = Column(String, nullable=False)

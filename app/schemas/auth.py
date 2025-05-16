@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
     name: str = Field(..., min_length=5, max_length=50, examples=["John doe"])
     email: EmailStr = Field(..., max_length=100)
     phone_number: Optional[str] = Field(
+        default="",
         max_length=15,
         description="Phone number must be a 10-digit number",
         examples=["03429123456"],

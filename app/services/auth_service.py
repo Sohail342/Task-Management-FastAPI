@@ -23,16 +23,6 @@ async def create_new_user_by_email(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
-    # Check if user with the same phone number already exists
-    phone = select(User).where(User.phone_number == user_data.phone_number)
-    result = await db.execute(phone)
-    existing_user = result.scalars().first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Phone number already registered",
-        )
-
     # Create new user
     user_dict = user_data.model_dump(exclude={"confirm_password"})
     user = User(**user_dict)
