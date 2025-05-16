@@ -34,7 +34,8 @@ async def create_new_user_by_email(
         )
 
     # Create new user
-    user = User(**user_data.model_dump())
+    user_dict = user_data.model_dump(exclude={"confirm_password"})
+    user = User(**user_dict)
     db.add(user)
     await db.commit()
     await db.refresh(user)

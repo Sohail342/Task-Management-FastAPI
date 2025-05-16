@@ -32,7 +32,7 @@ class TaskGet(BaseModel):
     escalation_flagged: Optional[bool] = False
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         
         
 class TaskUpdate(BaseModel):
@@ -49,4 +49,4 @@ class TaskUpdate(BaseModel):
     escalation_flagged: Optional[bool] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
