@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, Integer, String, Enum, Boolean
 from app.db.base_class import Base
 from app.utils.security import hash_password, verify_password
 import enum
@@ -20,13 +20,23 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     role = Column(Enum(UserRole), default=UserRole.EMPLOYEE, nullable=False)
     password = Column(String, nullable=False)
-    is_active = Column(Integer, default=1, nullable=False)
-    is_superuser = Column(Integer, default=0, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_superuser = Column(Boolean, default=False, nullable=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if "password" in kwargs:
             self.set_password(kwargs["password"])
+            
+        if "role" in kwargs:
+            if kwargs["role"] not in UserRole:
+                raise ValueError(f"Invalid role: {kwargs['role']}")
+            
+            if kwargs["role"] == UserRole.ADMIN:
+                self.is_superuser = True
+        else:
+            self.role = UserRole.EMPLOYEE
+            
 
     def set_password(self, password: str):
         """Hash and set the password."""

@@ -28,8 +28,8 @@ def upgrade() -> None:
     sa.Column('email', sa.String(), nullable=True),
     sa.Column('role', sa.Enum('ADMIN', 'SUPERVISOR', 'EMPLOYEE', 'COMPLIANCE', name='userrole'), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
-    sa.Column('is_active', sa.Integer(), nullable=False),
-    sa.Column('is_superuser', sa.Integer(), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('is_superuser', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)

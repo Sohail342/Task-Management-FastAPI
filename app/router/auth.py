@@ -4,12 +4,13 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import UserCreate, UserLogin, TokenResponse, UserResponse
-from app.core.dependencies import get_current_user
+from app.schemas.auth import UserCreate, UserLogin, TokenResponse, UserResponse, EmployeeResponse
+from app.core.dependencies import get_current_user, role_required
 from app.services.auth_service import (
     create_new_user_by_email,
     authenticate_user,
     recreate_access_token,
+    get_all_users,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -40,3 +41,12 @@ async def refresh(credentials: HTTPAuthorizationCredentials = Depends(refresh_sc
 async def logout(current_user: User = Depends(get_current_user)):
     """Logout a user by revoking their JWT token"""
     return {"message": "Successfully logged out"}
+
+
+@router.get("/employees", response_model=list[EmployeeResponse])
+async def get_employees(
+    current_user: User = Depends(role_required(["Admin", "Supervisor"])),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all employees"""
+    return await get_all_users(db=db)

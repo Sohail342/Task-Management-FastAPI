@@ -4,7 +4,6 @@ from fastapi.exceptions import HTTPException
 
 from app.core.dependencies import role_required
 from app.db.session import get_db
-from app.models.user import UserRole
 from app.schemas.task import TaskCreate, TaskGet, TaskUpdate
 from app.services.task_service import (
     create_task_service,

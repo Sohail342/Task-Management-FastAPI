@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, model_validator, validator, Field
+from pydantic import BaseModel, EmailStr, model_validator, field_validator, Field
 from typing import Optional
 import re
 
@@ -41,7 +41,7 @@ class UserCreate(BaseModel):
         return values
     
 
-    @validator("phone_number")
+    @field_validator("phone_number")
     def validate_pakistani_phone(cls, v):
         # Remove spaces
         v_clean = v.replace(" ", "")
@@ -77,6 +77,21 @@ class UserResponse(BaseModel):
     role: UserRole
     is_active: bool
     is_superuser: bool
+
+    class Config:
+        from_attributes = True
+        
+        
+
+class EmployeeResponse(BaseModel):
+    """Schema for employee response"""
+
+    id: int
+    name: str
+    email: str
+    phone_number: str
+    role: UserRole = UserRole.EMPLOYEE
+    is_active: bool
 
     class Config:
         from_attributes = True
