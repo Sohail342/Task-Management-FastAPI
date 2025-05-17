@@ -97,3 +97,6 @@ def role_required(role: list[str]):
         return current_user
 
     return role_checker
+
+
+admin_or_supervisor = role_required(["Admin", "Supervisor"])
