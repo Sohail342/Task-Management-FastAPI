@@ -85,13 +85,15 @@ async def recreate_access_token(
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
-    
-    
+
+
 async def get_all_users(
     db: AsyncSession,
 ):
     """Get all users"""
-    query = select(User).where(User.is_active.is_(True), User.role == UserRole.EMPLOYEE.value)
+    query = select(User).where(
+        User.is_active.is_(True), User.role == UserRole.EMPLOYEE.value
+    )
     result = await db.execute(query)
     users = result.scalars().all()
 

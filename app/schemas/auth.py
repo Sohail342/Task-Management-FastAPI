@@ -18,10 +18,7 @@ class UserCreate(BaseModel):
     )
     password: str = Field(..., min_length=8, max_length=20, examples=[""])
     confirm_password: str = Field(..., min_length=8, max_length=20, examples=[""])
-    role: Optional[UserRole] = Field(
-        default=UserRole.EMPLOYEE,
-        description="Select the user role"
-    )
+    
 
     @model_validator(mode="before")
     def check_passwords_match(cls, values):
@@ -31,7 +28,7 @@ class UserCreate(BaseModel):
 
         if password != confirm_password:
             raise ValueError("Passwords do not match")
-        
+
         if not password:
             raise ValueError("Password cannot be empty")
 
@@ -39,7 +36,6 @@ class UserCreate(BaseModel):
         if not re.search(r"[A-Z]", password):
             raise ValueError("Password must contain at least one uppercase letter")
         return values
-    
 
     @field_validator("phone_number")
     def validate_pakistani_phone(cls, v):
@@ -80,8 +76,7 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        
-        
+
 
 class EmployeeResponse(BaseModel):
     """Schema for employee response"""

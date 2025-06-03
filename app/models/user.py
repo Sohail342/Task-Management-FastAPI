@@ -27,16 +27,15 @@ class User(Base):
         super().__init__(**kwargs)
         if "password" in kwargs:
             self.set_password(kwargs["password"])
-            
+
         if "role" in kwargs:
             if kwargs["role"] not in UserRole:
                 raise ValueError(f"Invalid role: {kwargs['role']}")
-            
+
             if kwargs["role"] == UserRole.ADMIN:
                 self.is_superuser = True
         else:
             self.role = UserRole.EMPLOYEE
-            
 
     def set_password(self, password: str):
         """Hash and set the password."""

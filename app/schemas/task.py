@@ -10,13 +10,22 @@ class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
     status: TaskStatus = TaskStatus.PENDING
-    assigned_to: Optional[int] = None
+    assigned_to_id: Optional[int] = None
     start_date: Optional[datetime] = datetime.now(timezone.utc)
     due_date: Optional[datetime] = None
-    dependency_task_id: Optional[int] = None
-    escalation_flagged: Optional[bool] = False
-    
-    
+
+
+class CreateTaskDependant(BaseModel):
+    """Schema for creating a new task dependant by employee"""
+
+    title: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+
 class TaskGet(BaseModel):
     """Schema for getting a task"""
 
@@ -28,13 +37,12 @@ class TaskGet(BaseModel):
     assigned_by_id: Optional[int] = None
     start_date: Optional[datetime] = datetime.now(timezone.utc)
     due_date: Optional[datetime] = None
-    dependency_task_id: Optional[int] = None
     escalation_flagged: Optional[bool] = False
 
     class Config:
         from_attributes = True
-        
-        
+
+
 class TaskUpdate(BaseModel):
     """Schema for updating a task"""
 
@@ -45,7 +53,6 @@ class TaskUpdate(BaseModel):
     assigned_by_id: Optional[int] = None
     start_date: Optional[datetime] = None
     due_date: Optional[datetime] = None
-    dependency_task_id: Optional[int] = None
     escalation_flagged: Optional[bool] = None
 
     class Config:

@@ -1,10 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.exceptions import HTTPException
 from fastapi import status
+from sqlalchemy.future import select
 
-from app.models.task import Task
+from app.models.task import Task, DependantTask
 from app.models.user import UserRole
-from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task import TaskCreate, TaskUpdate, CreateTaskDependant
 
 
 async def create_task_service(
@@ -28,20 +29,34 @@ async def get_task_service(
 ) -> Task | None:
     """Get a task by ID"""
     task = await db.get(Task, task_id)
-    
+
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
-        
+
     # If user is Employee, check if assigned_to matches current_user.id
-    if current_user.role == UserRole.EMPLOYEE and task.assigned_to_id != current_user.id:
+    if (
+        current_user.role == UserRole.EMPLOYEE
+        and task.assigned_to_id != current_user.id
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to access this task",
         )
     return task
+
+
+async def get_all_tasks_service(
+    current_user: int,
+    db: AsyncSession,
+) -> list[Task]:
+    """Get all tasks"""
+
+    tasks = await db.execute(select(Task))
+
+    return tasks.scalars().all()
 
 
 async def update_task_service(
@@ -52,7 +67,9 @@ async def update_task_service(
     """Update a task by ID"""
     task = await db.get(Task, task_id)
     if not task:
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
 
     for key, value in task_data.model_dump().items():
         setattr(task, key, value)
@@ -63,7 +80,6 @@ async def update_task_service(
     return task
 
 
-
 async def delete_task_service(
     task_id: int,
     db: AsyncSession,
@@ -71,9 +87,39 @@ async def delete_task_service(
     """Delete a task by ID"""
     task = await db.get(Task, task_id)
     if not task:
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
 
     await db.delete(task)
     await db.commit()
 
     return task
+
+
+async def get_assigned_tasks_service(
+    current_user: int,
+    db: AsyncSession,
+) -> list[Task]:
+    """Get all tasks assigned to the current user"""
+    tasks = await db.execute(select(Task).where(Task.assigned_to_id == current_user.id))
+    return tasks.scalars().all()
+
+
+async def create_dependant_task_service(
+    task_id: int,
+    current_user: int,
+    dependant_task_data: CreateTaskDependant,
+    db: AsyncSession,
+) -> DependantTask:
+    """Create a new dependant task"""
+    dependant_task = DependantTask(
+        **dependant_task_data.model_dump(),
+        dependant_to_id=task_id,
+        created_by_id=current_user.id,
+    )
+    db.add(dependant_task)
+    await db.commit()
+    await db.refresh(dependant_task)
+
+    return dependant_task

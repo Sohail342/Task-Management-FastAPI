@@ -17,7 +17,7 @@ fileConfig(config.config_file_name)
 settings = get_settings()
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"))
 
-target_metadata = Base.metadata  # From your SQLAlchemy models
+target_metadata = Base.metadata  # From SQLAlchemy models
 
 # Async migration run
 def do_run_migrations(connection):
