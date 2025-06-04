@@ -32,6 +32,26 @@ async def create_new_user_by_email(
 
     return user
 
+async def create_new_user_by_admin(user_data: UserCreate, db: AsyncSession):
+    # Check if user with the same email already exists
+    query = select(User).where(User.email == user_data.email)
+    result = await db.execute(query)
+    existing_user = result.scalars().first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+        )
+
+    # Create new user
+    user_dict = user_data.model_dump(exclude={"confirm_password"})
+    user = User(**user_dict)
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+
+    return user
+
 
 async def authenticate_user(
     user_data: UserLogin, db: AsyncSession
@@ -89,11 +109,18 @@ async def recreate_access_token(
 
 async def get_all_users(
     db: AsyncSession,
+    current_user: User = None,
 ):
     """Get all users"""
-    query = select(User).where(
-        User.is_active.is_(True), User.role == UserRole.EMPLOYEE.value
-    )
+    # If the current user is an Admin, return all users
+    if current_user and current_user.role == UserRole.ADMIN.value:
+        query = select(User).where(User.is_active.is_(True))
+    else:
+        # For non-admin users, only return employees
+        query = select(User).where(
+            User.is_active.is_(True), User.role == UserRole.EMPLOYEE.value
+        )
+    
     result = await db.execute(query)
     users = result.scalars().all()
 

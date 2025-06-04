@@ -4,7 +4,7 @@ from fastapi.exceptions import HTTPException
 
 from app.core.dependencies import role_required
 from app.db.session import get_db
-from app.schemas.task import TaskCreate, TaskGet, TaskUpdate, CreateTaskDependant
+from app.schemas.task import TaskCreate, TaskGet, TaskUpdate, CreateTaskDependant, GetTaskDependant
 from app.services.task_service import (
     create_task_service,
     get_task_service,
@@ -13,6 +13,8 @@ from app.services.task_service import (
     create_dependant_task_service,
     get_assigned_tasks_service,
     get_all_tasks_service,
+    get_dependant_task_service,
+    get_task_dependants_service,
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -106,4 +108,22 @@ async def create_task_dependant(
 
     return await create_dependant_task_service(
         task_id=task_id, current_user=current_user, dependant_task_data=task_data, db=db
+    )
+
+
+
+@router.get(
+    "/dependants/{task_id}",
+    response_model=list[GetTaskDependant],
+    status_code=status.HTTP_200_OK,
+)
+async def get_task_dependants(
+    task_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: int = Depends(role_required(["Admin", "Supervisor", "Compliance", "Employee"])),
+):
+    """Get all dependant tasks for a specific task"""
+
+    return await get_task_dependants_service(
+        task_id=task_id, current_user=current_user, db=db
     )

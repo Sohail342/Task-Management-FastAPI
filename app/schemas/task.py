@@ -23,7 +23,19 @@ class CreateTaskDependant(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
+        
+
+class GetTaskDependant(BaseModel):
+    """Schema for getting a task dependant"""
+
+    id: int
+    title: str
+    description: Optional[str] = None
+    dependant_to_id: int
+    created_in: datetime = datetime.now(timezone.utc)
+
+    class Config:
+        from_attributes = True
 
 
 class TaskGet(BaseModel):

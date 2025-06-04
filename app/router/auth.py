@@ -11,6 +11,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
     EmployeeResponse,
+    UserCreateByAdmin,
 )
 from app.core.dependencies import get_current_user, role_required
 from app.services.auth_service import (
@@ -18,6 +19,7 @@ from app.services.auth_service import (
     authenticate_user,
     recreate_access_token,
     get_all_users,
+    create_new_user_by_admin,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -61,8 +63,8 @@ async def get_employees(
     current_user: User = Depends(role_required(["Admin", "Supervisor"])),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get all employees"""
-    return await get_all_users(db=db)
+    """Get all employees or all users if Admin"""
+    return await get_all_users(db=db, current_user=current_user)
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
@@ -136,3 +138,12 @@ async def delete_user(
     await db.commit()
     
     return None
+
+@router.post("/users/create", response_model=UserResponse)
+async def create_user_by_admin(
+    user_data: UserCreateByAdmin,
+    current_user: User = Depends(role_required(["Admin"])),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a new user by Admin"""
+    return await create_new_user_by_admin(user_data=user_data, db=db)
