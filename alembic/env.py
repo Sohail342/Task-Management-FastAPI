@@ -15,7 +15,8 @@ fileConfig(config.config_file_name)
 
 # Load DB URL from settings
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"))
+raw_db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+config.set_main_option("sqlalchemy.url", raw_db_url)
 
 target_metadata = Base.metadata  # From SQLAlchemy models
 
