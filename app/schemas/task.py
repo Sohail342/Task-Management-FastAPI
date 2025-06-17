@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
+from pydantic import EmailStr
+
 from app.models.task import TaskStatus
+
 
 
 class TaskCreate(BaseModel):
@@ -13,6 +16,12 @@ class TaskCreate(BaseModel):
     assigned_to_id: Optional[int] = None
     start_date: Optional[datetime] = datetime.now(timezone.utc)
     due_date: Optional[datetime] = None
+
+
+class MultipleUserTaskResponse(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
 
 
 class CreateTaskDependant(BaseModel):

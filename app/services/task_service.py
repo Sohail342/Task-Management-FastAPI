@@ -4,7 +4,7 @@ from fastapi import status
 from sqlalchemy.future import select
 
 from app.models.task import Task, DependantTask
-from app.models.user import UserRole
+from app.models.user import UserRole, User
 from app.schemas.task import TaskCreate, TaskUpdate, CreateTaskDependant
 
 
@@ -14,7 +14,9 @@ async def create_task_service(
     db: AsyncSession,
 ) -> Task:
     """Create a new task"""
-    task = Task(**task_data.model_dump(), assigned_by_id=current_user.id)
+    assigned_to = await db.get(User, task_data.assigned_to_id)
+
+    task = Task(**task_data.model_dump(), assigned_by_id=current_user.id, assigned_to=assigned_to)
     db.add(task)
     await db.commit()
     await db.refresh(task)
@@ -125,30 +127,6 @@ async def create_dependant_task_service(
     return dependant_task
 
 
-async def get_dependant_task_service(
-    dependant_task_id: int,
-    current_user: int,
-    db: AsyncSession,
-) -> DependantTask | None:
-    """Get a dependant task by ID"""
-    result = await db.execute(
-        select(DependantTask).where(
-            DependantTask.id == dependant_task_id,
-            DependantTask.created_by_id == current_user.id,
-        )
-    )
-    
-    dependant_task = result.scalar_one_or_none()
-
-    if not dependant_task:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dependant task not found",
-        )
-
-    return dependant_task
-
-
 async def get_task_dependants_service(
     task_id: int,
     current_user: int,
@@ -164,3 +142,24 @@ async def get_task_dependants_service(
     )
     
     return result.scalars().all()
+
+
+async def assigned_task_to_multiple_users(users: list[User], task: Task, db: AsyncSession):
+    """Assign a task to multiple users"""
+    if not users:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No users provided for task assignment",
+        )
+
+    for user in users:
+        task.assigned_to_id = user.id
+        db.add(task)
+    
+    await db.commit()
+    await db.refresh(task)
+
+    return task
+
+    
+
