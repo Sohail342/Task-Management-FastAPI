@@ -14,10 +14,10 @@ app = FastAPI(root_path="/api", title="Task Management API", description="API fo
 app.include_router(auth.router)
 app.include_router(task.router)
 
-# Configure CORS with specific origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://94.136.188.243:3000", "http://localhost:3000"],
+    allow_origins=["http://94.136.188.243:3000", "http://localhost:3000/", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
