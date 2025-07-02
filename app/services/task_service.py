@@ -14,14 +14,47 @@ async def create_task_service(
     db: AsyncSession,
 ) -> Task:
     """Create a new task"""
-    assigned_to = await db.get(User, task_data.assigned_to_id)
+    task = None
+    if len(task_data.assigned_to_id) > 1:
+        result = await db.execute(select(User).where(User.id.in_(task_data.assigned_to_id)))
+        assigned_users = result.scalars().all()
+        print(f"Assigned to users: {assigned_users}")
 
-    task = Task(**task_data.model_dump(), assigned_by_id=current_user.id, assigned_to=assigned_to)
-    db.add(task)
-    await db.commit()
-    await db.refresh(task)
+       
+        if not assigned_users:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No users found with the provided IDs",
+            )
+        
+        return await assigned_task_to_multiple_users(
+            current_user=current_user,
+            users=assigned_users,
+            task_date=task_data,
+            db=db
+            )
+
+    else:
+        assigned_to = None
+        assigned_to = await db.get(User, task_data.assigned_to_id[0])
+
+        if not assigned_to:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found with the provided ID",
+            )
+        
+        task = Task(
+            **task_data.model_dump(exclude={"assigned_to_id", "assigned_by_id"}),
+            assigned_to_id=assigned_to.id,
+            assigned_by_id=current_user.id,
+        )
+        db.add(task)
+        await db.commit()
+        await db.refresh(task)
 
     return task
+    
 
 
 async def get_task_service(
@@ -144,7 +177,7 @@ async def get_task_dependants_service(
     return result.scalars().all()
 
 
-async def assigned_task_to_multiple_users(users: list[User], task: Task, db: AsyncSession):
+async def assigned_task_to_multiple_users(current_user: int, users: list[User], task_date: TaskCreate, db: AsyncSession):
     """Assign a task to multiple users"""
     if not users:
         raise HTTPException(
@@ -153,12 +186,16 @@ async def assigned_task_to_multiple_users(users: list[User], task: Task, db: Asy
         )
 
     for user in users:
-        task.assigned_to_id = user.id
+        task = Task(
+            **task_date.model_dump(exclude={"assigned_to_id", "assigned_by_id"}),
+            assigned_to_id=user.id, 
+            assigned_by_id=current_user.id,
+        )
         db.add(task)
     
     await db.commit()
     await db.refresh(task)
-
+    print(f"Task assigned to multiple users: {task}")
     return task
 
     

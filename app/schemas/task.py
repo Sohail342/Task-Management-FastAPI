@@ -13,10 +13,24 @@ class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
     status: TaskStatus = TaskStatus.PENDING
-    assigned_to_id: Optional[int] = None
+    assigned_to_id: Optional[list[int]] = None
+    assigned_by_id: Optional[int] = None
     start_date: Optional[datetime] = datetime.now(timezone.utc)
     due_date: Optional[datetime] = None
 
+class TaskResponse(BaseModel):
+    """Schema for task response"""
+    id: int
+    title: str
+    description: Optional[str]
+    status: TaskStatus
+    assigned_to_id: Optional[int]
+    assigned_by_id: Optional[int]
+    start_date: Optional[datetime]
+    due_date: Optional[datetime]
+
+    class Config:
+        from_attributes = True
 
 class MultipleUserTaskResponse(BaseModel):
     id: int

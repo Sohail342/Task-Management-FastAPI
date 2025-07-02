@@ -5,7 +5,7 @@ from typing import Annotated
 
 from app.core.dependencies import role_required
 from app.db.session import get_db
-from app.schemas.task import TaskCreate, TaskGet, TaskUpdate, CreateTaskDependant, GetTaskDependant, MultipleUserTaskResponse
+from app.schemas.task import TaskCreate, TaskGet, TaskUpdate, CreateTaskDependant, GetTaskDependant, TaskResponse
 from app.services.task_service import (
     create_task_service,
     get_task_service,
@@ -15,13 +15,12 @@ from app.services.task_service import (
     get_assigned_tasks_service,
     get_all_tasks_service,
     get_task_dependants_service,
-    assigned_task_to_multiple_users,
 )
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.post("/", response_model=TaskCreate, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 async def create_task(
     task_data: TaskCreate,
     db: AsyncSession = Depends(get_db),
@@ -129,36 +128,6 @@ async def get_task_dependants(
     return await get_task_dependants_service(
         task_id=task_id, current_user=current_user, db=db
     )
-
-
-
-@router.post(
-    "/assign-multiple/{task_id}",
-    response_model=TaskGet,
-    status_code=status.HTTP_200_OK,
-)
-async def assign_task_to_multiple_users(
-    task_id: int,
-    user_ids: list[int] = Body(...),
-    db: AsyncSession = Depends(get_db),
-    current_user: int = Depends(role_required(["Admin"])),
-):
-    """Assign a task to multiple users"""
-    
-    # Get the task
-    task = await get_task_service(task_id=task_id, current_user=current_user, db=db)
-    
-    # Get the users
-    from app.models.user import User
-    users = []
-    for user_id in user_ids:
-        user = await db.get(User, user_id)
-        if user:
-            users.append(user)
-    
-    # Assign the task to the users
-    return await assigned_task_to_multiple_users(users=users, task=task, db=db)
-
 
 
 
